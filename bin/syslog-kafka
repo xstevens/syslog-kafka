@@ -1,0 +1,73 @@
+#!/bin/bash
+
+function usage() {
+  echo "Usage: $0 <server-port>"
+  exit 1
+}
+
+# Print usage if incorrect number of args
+[[ $# -ne 1 ]] && usage
+
+bin=`dirname "$0"`
+bin=`cd "$bin"; pwd`
+
+SERVER_PORT=$1
+SERVER_CLASS_NAME="kafka.syslog.SyslogKafkaServer"
+NOW=`date "+%Y%m%d%H%M%S"`
+SYSLOGKAFKA_OPTS="-Dserver.port=$SERVER_PORT -Dsyslogkafka.log.dir=$bin/../logs"
+GC_OPTS="-XX:+PrintHeapAtGC -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+PrintTenuringDistribution -Xloggc:$bin/../logs/gc.log.$NOW"
+JAVA_OPTS="$SYSLOGKAFKA_OPTS -Xmx64m -XX:+UseCompressedOops $GC_OPTS"
+
+export MALLOC_ARENA_MAX=2
+
+if [ "$SYSLOGKAFKA_USER" = "" ]; then
+    SYSLOGKAFKA_USER="$USER"
+fi
+
+if [ -d "/var/run/syslogkafka" ]; then
+    PIDFILE="/var/run/syslogkafka/syslogkafka.pid"
+else
+    PIDFILE="$bin/../syslogkafka.pid"
+fi
+
+# if this is a developer then use the main jar in the build directory
+if [ -d $bin/../target ]; then
+    MAIN_JAR_PATH="$bin/../target/syslog-kafka-*.jar"
+    if [ "$DAEMON_DETACHED" = "" ]; then
+        DAEMON_DETACHED=false
+    fi
+else
+    MAIN_JAR_PATH="$bin/../syslog-kafka-*.jar"
+    if [ "$DAEMON_DETACHED" = "" ]; then
+        DAEMON_DETACHED=true
+    fi
+fi
+
+CLASSPATH="$bin/../conf"
+# add main jar
+for lib in `ls $MAIN_JAR_PATH`; do
+    CLASSPATH=${CLASSPATH}:$lib
+done    
+
+# add dependency libs
+for lib in `ls $bin/../lib/*.jar`; do
+    CLASSPATH=${CLASSPATH}:$lib
+done
+
+# create logs dir if it doesn't exist
+if [ ! -d $bin/../logs ]; then
+    mkdir -p $bin/../logs
+fi
+
+if [ "$DAEMON_DETACHED" = false ]; then
+    java $JAVA_OPTS -cp $CLASSPATH $SERVER_CLASS_NAME
+    RETVAL=$?
+else
+    nohup java $JAVA_OPTS -cp $CLASSPATH $SERVER_CLASS_NAME > $bin/../logs/syslogkafka.out 2>&1 < /dev/null &
+    PID=$!
+    RETVAL=$?
+
+    echo $PID > $PIDFILE
+fi
+
+exit $RETVAL

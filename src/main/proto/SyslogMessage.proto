@@ -1,0 +1,26 @@
+package syslog_data_definition;
+
+option java_package = "kafka.syslog";
+option java_outer_classname = "SyslogProto";
+option optimize_for = SPEED;
+
+message SyslogMessage {
+	
+	// 1 is reserved in case we ever want an id scheme later on
+	optional sint64 timestamp = 2;
+	optional uint32 facility = 3;
+	enum Severity {
+		EMERG = 0;
+		ALERT = 1;
+		CRIT = 2;
+		ERROR = 3;
+		WARN = 4;
+		NOTICE = 5;
+		INFO = 6;
+		DEBUG = 7;
+	}
+	optional Severity severity = 4;
+	optional string host = 5;
+	optional string msg = 6;
+	
+}
