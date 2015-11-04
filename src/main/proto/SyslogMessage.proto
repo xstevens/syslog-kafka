@@ -4,23 +4,59 @@ option java_package = "kafka.syslog";
 option java_outer_classname = "SyslogProto";
 option optimize_for = SPEED;
 
+enum Facility {
+	KERNEL = 0;
+	USER = 8;
+	MAIL = 16;
+	DAEMON = 24;
+	AUTH = 32;
+	SYSLOG = 40;
+	LPR = 48;
+	NEWS = 56;
+	UUCP = 64;
+	CRON = 72;
+	AUTHPRIV = 80;
+	FTP = 88;
+	LOCAL0 = 128;
+	LOCAL1 = 136;
+	LOCAL2 = 144;
+	LOCAL3 = 152;
+	LOCAL4 = 160;
+	LOCAL5 = 168;
+	LOCAL6 = 176;
+	LOCAL7 = 184;
+}
+
+enum Severity {
+	EMERG = 0;
+	ALERT = 1;
+	CRIT = 2;
+	ERROR = 3;
+	WARN = 4;
+	NOTICE = 5;
+	INFO = 6;
+	DEBUG = 7;
+}
+
 message SyslogMessage {
-	
 	// 1 is reserved in case we ever want an id scheme later on
 	optional sint64 timestamp = 2;
-	optional uint32 facility = 3;
-	enum Severity {
-		EMERG = 0;
-		ALERT = 1;
-		CRIT = 2;
-		ERROR = 3;
-		WARN = 4;
-		NOTICE = 5;
-		INFO = 6;
-		DEBUG = 7;
-	}
+	optional Facility facility = 3;
 	optional Severity severity = 4;
 	optional string host = 5;
 	optional string msg = 6;
 	
+}
+
+message SyslogDynamicKey {
+	optional string host = 2;
+	optional Facility facility = 3;
+	optional Severity severity = 4;
+}
+
+message SyslogKey {
+	oneof key {
+		string name = 2;
+		SyslogDynamicKey dynamic = 3;
+	}
 }

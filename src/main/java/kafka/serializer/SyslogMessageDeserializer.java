@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Xavier Stevens
+ * Copyright 2015 Christopher Smith
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -19,14 +19,25 @@
  */
 package kafka.serializer;
 
-import kafka.message.Message;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.protobuf.InvalidProtocolBufferException;
+import org.apache.kafka.common.serialization.Deserializer;
+
 import kafka.syslog.SyslogProto.SyslogMessage;
 
-public class SyslogMessageEncoder implements Encoder<SyslogMessage> {
+public class SyslogMessageDeserializer extends Adapter implements Deserializer<SyslogMessage> {
+    private static final Logger LOG = LoggerFactory.getLogger(ProtobufSerializer.class);
 
     @Override
-    public Message toMessage(SyslogMessage smsg) {
-        return new Message(smsg.toByteArray());
+    public SyslogMessage deserialize(final String topic, byte[] data) {
+	try {
+	    return SyslogMessage.parseFrom(data);
+	} catch (final InvalidProtocolBufferException e) {
+	    LOG.error("Received unparseable message", e);
+	    throw new RuntimeException("Received unparseable message " + e.getMessage(), e);
+	}
     }
 
 }

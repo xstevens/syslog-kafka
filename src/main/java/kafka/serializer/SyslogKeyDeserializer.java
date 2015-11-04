@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Xavier Stevens
+ * Copyright 2015 Christopher Smith
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -19,29 +19,25 @@
  */
 package kafka.serializer;
 
-import kafka.message.Message;
-import kafka.syslog.SyslogProto;
-import kafka.syslog.SyslogProto.SyslogMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import org.apache.log4j.Logger;
-
-import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
+import org.apache.kafka.common.serialization.Deserializer;
 
-public class SyslogMessageDecoder implements Decoder<SyslogMessage> {
+import kafka.syslog.SyslogProto.SyslogKey;
 
-    private static final Logger LOG = Logger.getLogger(SyslogMessageDecoder.class);
+public class SyslogKeyDeserializer extends Adapter implements Deserializer<SyslogKey> {
+    private static final Logger LOG = LoggerFactory.getLogger(ProtobufSerializer.class);
 
     @Override
-    public SyslogMessage toEvent(Message msg) {
-        SyslogMessage smsg = null;
-        try {
-            smsg = SyslogProto.SyslogMessage.parseFrom(ByteString.copyFrom(msg.payload()));
-        } catch (InvalidProtocolBufferException e) {
-            LOG.error("Received unparseable message", e);
-        }
-
-        return smsg;
+    public SyslogKey deserialize(final String topic, byte[] data) {
+	try {
+	    return SyslogKey.parseFrom(data);
+	} catch (final InvalidProtocolBufferException e) {
+	    LOG.error("Received unparseable message", e);
+	    throw new RuntimeException("Received unparseable message " + e.getMessage(), e);
+	}
     }
 
 }
