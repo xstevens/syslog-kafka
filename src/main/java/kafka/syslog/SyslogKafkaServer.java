@@ -26,8 +26,6 @@ import java.net.URL;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.kafka.clients.producer.KafkaProducer;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

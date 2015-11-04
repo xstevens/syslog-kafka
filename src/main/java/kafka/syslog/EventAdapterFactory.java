@@ -20,7 +20,6 @@
 
 package kafka.syslog;
 
-import java.util.function.Function;
 import java.util.Properties;
 
 import org.slf4j.Logger;
@@ -42,10 +41,6 @@ public class EventAdapterFactory {
     public static final String KAFKA_KEY = "syslog.kafka.key";
     public static final String KAFKA_DYNAMIC_KEY = "syslog.kafka.key.dynamic";
 
-    @FunctionalInterface
-    public static interface EventAdapter extends Function<SyslogServerEventIF, ProducerRecord<SyslogKey, SyslogMessage>> {
-    }
-
     public EventAdapterFactory() {
 	this(DEFAULT_TOPIC);
     }
@@ -59,11 +54,11 @@ public class EventAdapterFactory {
 	this.topic = topic;
     }
 
-    public static long getTimestamp(final SyslogServerEventIF event) {
+    static long getTimestamp(final SyslogServerEventIF event) {
 	return event.getDate() != null ? event.getDate().getTime() : System.currentTimeMillis();
     }
 
-    public static SyslogMessage messageFromEvent(final SyslogServerEventIF event) {
+    static SyslogMessage messageFromEvent(final SyslogServerEventIF event) {
 	final SyslogMessage message = SyslogMessage.newBuilder()
 	    .setTimestamp(getTimestamp(event))
 	    .setFacility(Facility.valueOf(event.getFacility()))

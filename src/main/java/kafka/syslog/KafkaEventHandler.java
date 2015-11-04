@@ -45,11 +45,11 @@ public class KafkaEventHandler implements SyslogServerSessionlessEventHandlerIF,
     private static final Logger LOG = LoggerFactory.getLogger(KafkaEventHandler.class);
     private static final long serialVersionUID = 1797629243068715681L;
 
-    public KafkaEventHandler(final Properties kafkaProperties, final EventAdapterFactory.EventAdapter adapter, final MetricRegistry metrics) {
+    public KafkaEventHandler(final Properties kafkaProperties, final EventAdapter adapter, final MetricRegistry metrics) {
 	this(new KafkaProducer<SyslogKey, SyslogMessage>(kafkaProperties), adapter, metrics);
     }
 
-    public KafkaEventHandler(final KafkaProducer<SyslogKey, SyslogMessage> producer, final EventAdapterFactory.EventAdapter adapter, final MetricRegistry metrics) {
+    public KafkaEventHandler(final KafkaProducer<SyslogKey, SyslogMessage> producer, final EventAdapter adapter, final MetricRegistry metrics) {
 	assert producer != null;
 	assert adapter != null;
 	LOG.debug("Creating event handler with adapter {}", adapter);
@@ -60,9 +60,10 @@ public class KafkaEventHandler implements SyslogServerSessionlessEventHandlerIF,
 	sentEvents = metrics.counter(metricNamed("sent-events"));
 	handledExceptions = metrics.counter(metricNamed("handled-exceptions"));
 	eventHandling = metrics.timer(metricNamed("event-handling"));
+	LOG.debug("Initialized metrics/guages/counters");
     }
 
-    public static String metricNamed(final String... names) {
+    private static String metricNamed(final String... names) {
 	return MetricRegistry.name(KafkaEventHandler.class, names);
     }
 
@@ -112,7 +113,7 @@ public class KafkaEventHandler implements SyslogServerSessionlessEventHandlerIF,
     }
 
     private final KafkaProducer<SyslogKey, SyslogMessage> producer;
-    private final EventAdapterFactory.EventAdapter adapter;
+    private final EventAdapter adapter;
     private final AtomicBoolean closed = new AtomicBoolean(false);
     private final MetricRegistry metrics;
     private final Counter receivedEvents;
