@@ -96,8 +96,8 @@ public class SyslogKafkaServer {
 
         final Properties kafkaProperties = getDefaultKafkaProperties();
 	LOG.info("Kafka properties {}", kafkaProperties);
-        final KafkaProducer<SyslogKey, SyslogMessage> producer = new KafkaProducer<SyslogKey, SyslogMessage>(kafkaProperties, new SyslogKeySerializer(), new SyslogMessageSerializer());
 	final MetricRegistry registry = new MetricRegistry();
+        final KafkaEventHandler kafkaEventHandler = new KafkaEventHandler(kafkaProperties, EventAdapterFactory.newAdapter(kafkaProperties), registry);
 
         // Add producer and syslog server shutdown hooks
         Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -107,15 +107,13 @@ public class SyslogKafkaServer {
              * @see java.lang.Thread#run()
              */
             public void run() {
-                if (producer != null) {
-                    LOG.info("Closing producer...");
-                    producer.close();
-                }
+		LOG.info("Shutting down syslog server...");
                 SyslogServer.shutdown();
+		LOG.info("Closing producer...");
+		kafkaEventHandler.close();
             }
         });
 
-        final KafkaEventHandler kafkaEventHandler = new KafkaEventHandler(producer, EventAdapterFactory.newAdapter(kafkaProperties), registry);
         syslogServerConfig.addEventHandler(kafkaEventHandler);
  
 	if (System.getProperty(METRICS_LOGGER) != null) {

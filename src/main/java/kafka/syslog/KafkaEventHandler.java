@@ -22,6 +22,7 @@ package kafka.syslog;
 import java.io.Closeable;
 import java.net.SocketAddress;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.Properties;
 
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Counter;
@@ -44,6 +45,10 @@ public class KafkaEventHandler implements SyslogServerSessionlessEventHandlerIF,
     private static final Logger LOG = LoggerFactory.getLogger(KafkaEventHandler.class);
     private static final long serialVersionUID = 1797629243068715681L;
 
+    public KafkaEventHandler(final Properties kafkaProperties, final EventAdapterFactory.EventAdapter adapter, final MetricRegistry metrics) {
+	this(new KafkaProducer<SyslogKey, SyslogMessage>(kafkaProperties), adapter, metrics);
+    }
+
     public KafkaEventHandler(final KafkaProducer<SyslogKey, SyslogMessage> producer, final EventAdapterFactory.EventAdapter adapter, final MetricRegistry metrics) {
 	assert producer != null;
 	assert adapter != null;
@@ -51,10 +56,14 @@ public class KafkaEventHandler implements SyslogServerSessionlessEventHandlerIF,
         this.producer = producer;
 	this.adapter = adapter;
 	this.metrics = metrics;
-	receivedEvents = metrics.counter(MetricRegistry.name(KafkaEventHandler.class, "received-events"));
-	sentEvents = metrics.counter(MetricRegistry.name(KafkaEventHandler.class, "sent-events"));
-	handledExceptions = metrics.counter(MetricRegistry.name(KafkaEventHandler.class, "handled-exceptions"));
-	eventHandling = metrics.timer(MetricRegistry.name(KafkaEventHandler.class, "event-handling"));
+	receivedEvents = metrics.counter(metricNamed("received-events"));
+	sentEvents = metrics.counter(metricNamed("sent-events"));
+	handledExceptions = metrics.counter(metricNamed("handled-exceptions"));
+	eventHandling = metrics.timer(metricNamed("event-handling"));
+    }
+
+    public static String metricNamed(final String... names) {
+	return MetricRegistry.name(KafkaEventHandler.class, names);
     }
 
     @Override
