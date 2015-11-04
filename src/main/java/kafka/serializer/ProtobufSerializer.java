@@ -19,16 +19,10 @@
  */
 package kafka.serializer;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.protobuf.Message;
-
 import org.apache.kafka.common.serialization.Serializer;
 
 public class ProtobufSerializer<T extends Message> extends Adapter implements Serializer<T> {
-
-    private static final Logger LOG = LoggerFactory.getLogger(ProtobufSerializer.class);
 
     @Override
     public byte[] serialize(final String topic, final T data) {
