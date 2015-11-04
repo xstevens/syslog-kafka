@@ -50,3 +50,5 @@ report
 # Editor files
 .*.sw*
 *~
+
+syslogkafka.pid
