@@ -34,28 +34,31 @@ import org.slf4j.LoggerFactory;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.Callback;
-import kafka.syslog.SyslogProto.SyslogKey;
-import kafka.syslog.SyslogProto.SyslogMessage;
-
 import org.graylog2.syslog4j.server.SyslogServerSessionlessEventHandlerIF;
 import org.graylog2.syslog4j.server.SyslogServerEventIF;
 import org.graylog2.syslog4j.server.SyslogServerIF;
+
+import kafka.serializer.SyslogKeySerializer;
+import kafka.serializer.SyslogMessageSerializer;
+import kafka.syslog.SyslogProto.SyslogKey;
+import kafka.syslog.SyslogProto.SyslogMessage;
 
 public class KafkaEventHandler implements SyslogServerSessionlessEventHandlerIF, Closeable {
     private static final Logger LOG = LoggerFactory.getLogger(KafkaEventHandler.class);
     private static final long serialVersionUID = 1797629243068715681L;
 
-    public KafkaEventHandler(final Properties kafkaProperties, final EventAdapter adapter, final MetricRegistry metrics) {
-	this(new KafkaProducer<SyslogKey, SyslogMessage>(kafkaProperties), adapter, metrics);
+    public KafkaEventHandler(final Properties kafkaProperties, final EventAdapter adapter) {
+	this(new KafkaProducer<SyslogKey, SyslogMessage>(kafkaProperties, new SyslogKeySerializer(), new SyslogMessageSerializer()), adapter);
+	LOG.info("Created event handler with properties {}", kafkaProperties);
     }
 
-    public KafkaEventHandler(final KafkaProducer<SyslogKey, SyslogMessage> producer, final EventAdapter adapter, final MetricRegistry metrics) {
+    public KafkaEventHandler(final KafkaProducer<SyslogKey, SyslogMessage> producer, final EventAdapter adapter) {
 	assert producer != null;
 	assert adapter != null;
-	LOG.debug("Creating event handler with adapter {}", adapter);
+	LOG.debug("Creating event handler with producer {} and adapter {}", producer, adapter);
         this.producer = producer;
 	this.adapter = adapter;
-	this.metrics = metrics;
+	metrics = new MetricRegistry();
 	receivedEvents = metrics.counter(metricNamed("received-events"));
 	sentEvents = metrics.counter(metricNamed("sent-events"));
 	handledExceptions = metrics.counter(metricNamed("handled-exceptions"));
@@ -110,6 +113,10 @@ public class KafkaEventHandler implements SyslogServerSessionlessEventHandlerIF,
     public void exception(final SyslogServerIF server, final SocketAddress socketAddress, final Exception exception) {
 	LOG.error("Error reported", exception);
 	handledExceptions.inc();
+    }
+
+    public MetricRegistry getMetrics() {
+	return metrics;
     }
 
     private final KafkaProducer<SyslogKey, SyslogMessage> producer;

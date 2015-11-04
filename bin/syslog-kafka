@@ -25,6 +25,11 @@ then
     SYSLOGKAFKA_OPTS+=" -Dserver.port=$SERVER_PORT"
 fi
 
+if [ -n "${SERVER_HOST}" ]
+then
+    SYSLOGKAFKA_OPTS+=" -Dserver.host=$SERVER_HOST"
+fi
+
 if [ -n "${SERVER_PROTOCOL}" ]
 then
     SYSLOGKAFKA_OPTS+=" -Dsyslog.interface=${SERVER_PROTOCOL}"
@@ -38,6 +43,21 @@ fi
 if [ -n "${LOG_METRICS}" ]
 then
     SYSLOGKAFKA_OPTS+=" -Dmetrics.logger=1"
+fi
+
+if [ -n "${KAFKA_TOPIC}" ]
+then
+    SYSLOGKAFKA_OPTS+=" -Dkafka.publish.topic=${KAFKA_TOPIC}"
+fi
+
+if [ -n "${ENABLE_DYNAMIC_KEY}" ]
+then
+    SYSLOGKAFKA_OPTS+=" -Dsyslog.kafka.key.dynamic=1"
+fi
+
+if [ -n "${KAFKA_KEY}" ]
+then
+    SYSLOGKAFKA_OPTS+=" -Dsyslog.kafka.key=${KAFKA_KEY}"
 fi
 
 if [ -n "${MAX_HEAP}"]
