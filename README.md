@@ -1,3 +1,11 @@
+# DISCLAIMER
+YOU PROBABLY DO NOT WANT TO USE THIS.
+
+This was an open-source thought experiment I had several years ago when there wasn't a lot of support for Kafka within the exist syslog daemons. I had written a closed source implementation on top of Netty at the time for my employer. These days the major syslog daemons support publishing to Kafka so I would recommend using one of the following:
+
+* rsyslog [omfkafka](http://www.rsyslog.com/doc/master/configuration/modules/omkafka.html)
+* syslog-ng [kafka](https://www.balabit.com/documents/syslog-ng-ose-latest-guides/en/syslog-ng-ose-guide-admin/html/configuring-destinations-kafka.html)
+
 # syslog-kafka #
 
 Version: 0.1-SNAPSHOT
